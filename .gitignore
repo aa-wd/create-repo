@@ -1,2 +1,6 @@
 node_modules
 dist
+
+bitbucketConfig.json
+
+src/writetest.js
