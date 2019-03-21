@@ -1,24 +1,13 @@
 const https = require('https');
-const path = require('path');
 
+const { getRequestOptions } = require('./utils');
 const { getNewAccessToken, saveNewAccessToken } = require('./token-functions');
-const config = require(path.resolve(__dirname, '../bitbucketConfig.json'));
-const { username, refreshToken } = config;
-let { accessToken } = config; 
+let { accessToken } = require('../bitbucketConfig.json');
 
-const getRequestOptions = (forCreateRepo, projectName) => ({
-    host: forCreateRepo ? 'api.bitbucket.org' : 'bitbucket.org',
-    path: forCreateRepo ?
-        `/2.0/repositories/${username}/${projectName}` :
-        '/site/oauth2/access_token',
-    method: 'POST',
-    headers: {
-        'Authorization': `${forCreateRepo ? 'Bearer' : 'Basic'} ${forCreateRepo ? accessToken : refreshToken}`,
-    },
-});
+const getOptions = (projectName)  => getRequestOptions(true, projectName, accessToken);
 
-const createRepo = (projectName, isInitial = true) => new Promise((resolve, reject) => {
-    const request = https.request(getRequestOptions(true, projectName), (res) => {
+const createRepo = (projectName, isInitial = true) => new Promise((resolve) => {
+    const request = https.request(getOptions(projectName), (res) => {
         const responseData = [];
 
         res.on('data', (chunk) => {
@@ -61,4 +50,3 @@ const createRepo = (projectName, isInitial = true) => new Promise((resolve, reje
 });
 
 module.exports = createRepo;
-

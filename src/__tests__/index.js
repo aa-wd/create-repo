@@ -1,18 +1,19 @@
-
-jest.mock('./create-repo');
+const createRepoLocation = '../create-repo';
+const indexLocation = '../index';
+jest.mock(createRepoLocation);
 
 const originalArgv = Object.assign({}, process.argv);
 let createRepo;
 
 const clear = () => {
     jest.resetModules();
-    createRepo = require('./create-repo');
+    createRepo = require(createRepoLocation);
 };
 
 describe('create-repo.js', () => {
     beforeEach(() => {
         jest.resetModules();
-        createRepo = require('./create-repo');
+        createRepo = require(createRepoLocation);
     });
 
     afterEach(() => {
@@ -21,7 +22,7 @@ describe('create-repo.js', () => {
 
     test('does not start script if called without project name as arg', () => {
         process.argv = ['', ''];
-        require('./index');
+        require(indexLocation);
         expect(createRepo).not.toHaveBeenCalled();
         expect(process.exitCode).toEqual(1);
 
@@ -29,26 +30,26 @@ describe('create-repo.js', () => {
         process.exitCode = undefined;
 
         process.argv = ['', '', 'project'];
-        require('./index');
+        require(indexLocation);
         expect(createRepo).toHaveBeenCalled();
     });
 
     test('aborts script if project name contains invalid characters', () => {
         process.argv = [,, '_regular7'];
-        require('./index');
+        require(indexLocation);
         expect(process.exitCode).toBeUndefined();
 
         clear();
 
         process.argv = [,, '&'];
-        require('./index');
+        require(indexLocation);
         expect(process.exitCode).toEqual(1);
     });
 
     test('calls createRepo with project name as arg', () => {
         let projectName = 'validArg';
         process.argv = ['', '', projectName];
-        require('./index');
+        require(indexLocation);
         expect(createRepo).toHaveBeenCalledWith(projectName);
     });
 });

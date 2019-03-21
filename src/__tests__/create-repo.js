@@ -1,12 +1,17 @@
 const nock = require('nock');
-const path = require('path');
 
-const createRepo = require('./create-repo');
-const { getNewAccessToken, saveNewAccessToken } = require('./token-functions');
-const { username, accessToken } = require(path.resolve(__dirname, '../bitbucketConfig.json'));
+const createRepo = require('../create-repo');
+const { getNewAccessToken, saveNewAccessToken } = require('../token-functions');
+const { username, accessToken } = require('../../bitbucketConfig.json');
 
 const apiUrl = 'https://api.bitbucket.org';
 const matchAllUrls = (uri) => uri.includes('/2.0/repositories');
+
+const postData = {
+  scm: 'git',
+  is_private: true,
+};
+
 const tokenExpiredResponse = {
   "type": "error",
   "error": {
@@ -14,14 +19,10 @@ const tokenExpiredResponse = {
   }
 };
 
-jest.mock('./token-functions');
+jest.mock('../token-functions');
 
 describe('create-repo.js', () => {
     test('calls correct API endpoint to create repository', () => {
-      const postData = {
-        scm: 'git',
-        is_private: true,
-      };
 
       const reqheaders = {
         authorization: `Bearer ${accessToken}`,
@@ -44,7 +45,7 @@ describe('create-repo.js', () => {
         .post(matchAllUrls)
         .reply(401, tokenExpiredResponse)
 
-        nock(apiUrl, { reqheaders: { authorization: 'Bearer abcdef' } }) // see src/__mocks__token-functions.js
+        nock(apiUrl, { reqheaders: { authorization: 'Bearer abcdef' } }) // see src/__mocks__/token-functions.js
         .post(matchAllUrls)
         .reply(200, {})
 
