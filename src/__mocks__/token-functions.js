@@ -1,4 +1,4 @@
 module.exports = {
-    refreshAccessToken: jest.fn(),
-    updateAccessToken: jest.fn(),
+    getNewAccessToken: jest.fn(() => new Promise((resolve, reject) => { resolve('abcdef') })),
+    saveNewAccessToken: jest.fn(),
 };
