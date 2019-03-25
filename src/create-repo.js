@@ -1,52 +1,33 @@
-const https = require('https');
+#!/usr/bin/env node
+const { argv } = require('process');
 
-const { getRequestOptions } = require('./utils');
-const { getNewAccessToken, saveNewAccessToken } = require('./token-functions');
-let { accessToken } = require('../bitbucketConfig.json');
+const createRemoteRepo = require('./create-remote-repo');
+const { log, configExists } = require('./utils'); 
 
-const getOptions = (projectName)  => getRequestOptions(true, projectName, accessToken);
+const isValidName = (name) => /^[a-zA-Z0-9_\-\.]+$/.test(name);
+const projectName = argv[2];
 
-const createRepo = (projectName, isInitial = true) => new Promise((resolve) => {
-    const request = https.request(getOptions(projectName), (res) => {
-        const responseData = [];
-
-        res.on('data', (chunk) => {
-            responseData.push(chunk);
-        });
-
-        res.on('end', () => {
-
-            const parsedData = JSON.parse(responseData.join(''));
-            const isError = parsedData.hasOwnProperty('error');
-
-            if (isError && isInitial) {
-                getNewAccessToken()
-                    .then((newAccessToken) => {
-                        accessToken = newAccessToken;
-                        saveNewAccessToken(newAccessToken);
-
-                        createRepo(projectName, false).then(() => {
-                            resolve();
-                        });
-                    });
-                return;
-            } else if (isError) {
+const start = () => new Promise((resolve) => {
+    if (projectName && isValidName(projectName)) {
+        configExists().then((hasConfigurationFile) => {
+            if (hasConfigurationFile) {
+                createRemoteRepo(projectName);
+            } else {
+                log('No configuration file found');
                 process.exitCode = 1;
-                return resolve();
             }
-
-            resolve();
+            return resolve();
         });
-        
-    });
-
-    request.write(JSON.stringify({
-        scm: 'git',
-        is_private: true,
-        name: projectName,
-    }));
-
-    request.end();
+    } else if (projectName) {
+        log('Invalid name: Bitbucket rules: "must be lowercase, alphanumerical, and may contain underscores, dashes, or dots."');
+        process.exitCode = 1;
+    } else {
+        log('Missing argument: project name');
+        process.exitCode = 1;
+    }
+    resolve();
 });
 
-module.exports = createRepo;
+start();
+
+module.exports = start;

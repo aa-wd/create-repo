@@ -1,73 +1,69 @@
-const nock = require('nock');
+jest.mock('../create-remote-repo');
+jest.mock('../utils');
 
-const createRepo = require('../create-repo');
-const { getNewAccessToken, saveNewAccessToken } = require('../token-functions');
-const { username, accessToken } = require('../../bitbucketConfig.json');
+const originalArgv = Object.assign({}, process.argv);
 
-const apiUrl = 'https://api.bitbucket.org';
-const matchAllUrls = (uri) => uri.includes('/2.0/repositories');
+let start;
+let createRemoteRepo;
+let configExists;
 
-const postData = {
-  scm: 'git',
-  is_private: true,
+const reset = () => {
+    start = require('../create-repo');
+    createRemoteRepo = require('../create-remote-repo');
 };
-
-const tokenExpiredResponse = {
-  "type": "error",
-  "error": {
-      "message": "Access token expired. Use your refresh token to obtain a new access token."
-  }
-};
-
-jest.mock('../token-functions');
 
 describe('create-repo.js', () => {
-    test('calls correct API endpoint to create repository', () => {
 
-      const reqheaders = {
-        authorization: `Bearer ${accessToken}`,
-      };
-
-      nock(apiUrl, { reqheaders })
-        .post(`/2.0/repositories/${username}/projectA`, Object.assign({}, postData, { name: 'projectA' }))
-        .reply(200, {})
-        .post(`/2.0/repositories/${username}/projectB`, Object.assign({}, postData, { name: 'projectB' }))
-        .reply(200, {})
-  
-      return Promise.all([createRepo('projectA'), createRepo('projectB')])
-        .then(() => {
-          expect(nock.pendingMocks().length).toEqual(0);
-        })
+    afterEach(() => {
+        process.argv = originalArgv;
+        jest.resetModules();
     });
 
-    test('refreshes access token on 401 unauthorized', () => {
-      nock(apiUrl, { reqheaders: { authorization: `Bearer ${accessToken}` } })
-        .post(matchAllUrls)
-        .reply(401, tokenExpiredResponse)
+    test('aborts script if called without project name as arg', () => {
+        process.argv = ['', ''];
+        reset();
 
-        nock(apiUrl, { reqheaders: { authorization: 'Bearer abcdef' } }) // see src/__mocks__/token-functions.js
-        .post(matchAllUrls)
-        .reply(200, {})
-
-      return createRepo('xxx')
-        .then(() => {
-          
-          expect(nock.pendingMocks().length).toEqual(0);
-          expect(getNewAccessToken).toHaveBeenCalled();
-          expect(saveNewAccessToken).toHaveBeenCalledWith('abcdef');
+        return start().then(() => {
+            expect(createRemoteRepo).not.toHaveBeenCalled();
+            expect(process.exitCode).toEqual(1);
         });
     });
 
-    test('retries refreshing tokens only once', () => {
-      nock(apiUrl)
-        .post(matchAllUrls)
-        .reply(401, tokenExpiredResponse)
-        .post(matchAllUrls)
-        .reply(401, tokenExpiredResponse)
+    test('calls createRemoteRepo with project name as arg', () => {
+        let projectName = 'validArg';
+        process.argv = ['', '', projectName];
 
-      return createRepo('repo')
-        .then(() => {
-          expect(process.exitCode).toEqual(1);
+        reset();
+
+        return start().then(() => {
+            expect(createRemoteRepo).toHaveBeenCalledWith(projectName);
+        });
+    });
+
+    test('aborts script if bitbucket config is not found', () => {
+        process.argv = ['', '', 'noBitbucketConfig'];
+
+        configExists = require('../utils').configExists;
+        configExists.mockResolvedValue(false);
+
+        reset();
+
+        return start().then(() => {
+            expect(createRemoteRepo).not.toHaveBeenCalled();
+            expect(process.exitCode).toEqual(1);
+        });
+    });
+
+    test('aborts script if invalid repository name is given', () => {
+        process.argv = ['', '', '&'];
+        configExists = require('../utils').configExists;
+
+        reset();
+
+        return start().then(() => {
+            expect(configExists).not.toHaveBeenCalled();
+            expect(createRemoteRepo).not.toHaveBeenCalled();
+            expect(process.exitCode).toEqual(1);
         });
     });
 });

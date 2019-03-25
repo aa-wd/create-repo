@@ -1,3 +1,6 @@
+const { access } = require('fs');
+const path = require('path');
+
 const { accessToken, username, idAndSecret } = require('../bitbucketConfig.json');
 
 const getRequestOptions = (forCreateRepo, projectName = null, newToken = null) => ({
@@ -17,9 +20,12 @@ const log = (...args) => {
     console.log(...args);
 };
 
-const configExists = () => {
-    
-};
+const configExists = () => new Promise((resolve) => {
+    const configPath = path.resolve(__dirname, '../bitbucketConfig.json');
+    access(configPath, (err) => {
+        resolve(err === null);
+    });
+});
 
 module.exports = {
     getRequestOptions,
