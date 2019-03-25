@@ -1,5 +1,6 @@
 {
     "username": "",
     "accessToken": "",
-    "refreshToken": ""
+    "refreshToken": "",
+    "idAndSecret": ""
 }

@@ -1,40 +1,33 @@
-const https = require('https');
-const path = require('path');
+#!/usr/bin/env node
+const { argv } = require('process');
 
-const { username, accessToken, refreshToken } = require(path.resolve(__dirname, '../bitbucketConfig.json'));
+const createRemoteRepo = require('./create-remote-repo');
+const { log, configExists } = require('./utils'); 
 
-const getRequestOptions = (forCreateRepo, projectName) => ({
-    host: forCreateRepo ? 'api.bitbucket.org' : 'bitbucket.org',
-    path: forCreateRepo ?
-        `/2.0/repositories/${username}/${projectName}` :
-        '/site/oauth2/access_token',
-    method: 'POST',
-    headers: {
-        'Authorization': `${forCreateRepo ? 'Bearer' : 'Basic'} ${forCreateRepo ? accessToken : refreshToken}`,
+const isValidName = (name) => /^[a-zA-Z0-9_\-\.]+$/.test(name);
+const projectName = argv[2];
+
+const start = () => new Promise((resolve) => {
+    if (projectName && isValidName(projectName)) {
+        configExists().then((hasConfigurationFile) => {
+            if (hasConfigurationFile) {
+                createRemoteRepo(projectName);
+            } else {
+                log('No configuration file found');
+                process.exitCode = 1;
+            }
+            return resolve();
+        });
+    } else if (projectName) {
+        log('Invalid name: Bitbucket rules: "must be lowercase, alphanumerical, and may contain underscores, dashes, or dots."');
+        process.exitCode = 1;
+    } else {
+        log('Missing argument: project name');
+        process.exitCode = 1;
     }
+    resolve();
 });
 
-const createRepo = (projectName) => new Promise((resolve, reject) => {
-    const request = https.request(getRequestOptions(true, projectName), (res) => {
-        const responseData = [];
+start();
 
-        res.on('data', (chunk) => {
-            responseData.push(chunk);
-        });
-
-        res.on('end', () => {
-            const parsedData = JSON.parse(responseData.join(''));
-            resolve(parsedData);
-        });
-    });
-
-    request.write(JSON.stringify({
-        scm: 'git',
-        is_private: true,
-        name: projectName,
-    }));
-
-    request.end();
-});
-
-module.exports = createRepo;
+module.exports = start;
