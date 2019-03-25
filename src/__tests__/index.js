@@ -1,55 +1,69 @@
-const createRepoLocation = '../create-repo';
-const indexLocation = '../index';
-jest.mock(createRepoLocation);
+jest.mock('../create-repo');
+jest.mock('../utils');
 
 const originalArgv = Object.assign({}, process.argv);
-let createRepo;
 
-const clear = () => {
-    jest.resetModules();
-    createRepo = require(createRepoLocation);
+let start;
+let createRepo;
+let configExists;
+
+const reset = () => {
+    start = require('../index');
+    createRepo = require('../create-repo');
 };
 
 describe('create-repo.js', () => {
-    beforeEach(() => {
-        jest.resetModules();
-        createRepo = require(createRepoLocation);
-    });
 
     afterEach(() => {
         process.argv = originalArgv;
+        jest.resetModules();
     });
 
-    test('does not start script if called without project name as arg', () => {
+    test('aborts script if called without project name as arg', () => {
         process.argv = ['', ''];
-        require(indexLocation);
-        expect(createRepo).not.toHaveBeenCalled();
-        expect(process.exitCode).toEqual(1);
+        reset();
 
-        clear();
-        process.exitCode = undefined;
-
-        process.argv = ['', '', 'project'];
-        require(indexLocation);
-        expect(createRepo).toHaveBeenCalled();
-    });
-
-    test('aborts script if project name contains invalid characters', () => {
-        process.argv = [,, '_regular7'];
-        require(indexLocation);
-        expect(process.exitCode).toBeUndefined();
-
-        clear();
-
-        process.argv = [,, '&'];
-        require(indexLocation);
-        expect(process.exitCode).toEqual(1);
+        return start().then(() => {
+            expect(createRepo).not.toHaveBeenCalled();
+            expect(process.exitCode).toEqual(1);
+        });
     });
 
     test('calls createRepo with project name as arg', () => {
         let projectName = 'validArg';
         process.argv = ['', '', projectName];
-        require(indexLocation);
-        expect(createRepo).toHaveBeenCalledWith(projectName);
+
+        reset();
+
+        return start().then(() => {
+            expect(createRepo).toHaveBeenCalledWith(projectName);
+        });
+    });
+
+    test('aborts script if bitbucket config is not found', () => {
+        process.argv = ['', '', 'noBitbucketConfig'];
+
+        configExists = require('../utils').configExists;
+        configExists.mockResolvedValue(false);
+
+        reset();
+
+        return start().then(() => {
+            expect(createRepo).not.toHaveBeenCalled();
+            expect(process.exitCode).toEqual(1);
+        });
+    });
+
+    test('aborts script if invalid repository name is given', () => {
+        process.argv = ['', '', '&'];
+        configExists = require('../utils').configExists;
+
+        reset();
+
+        return start().then(() => {
+            expect(configExists).not.toHaveBeenCalled();
+            expect(createRepo).not.toHaveBeenCalled();
+            expect(process.exitCode).toEqual(1);
+        });
     });
 });

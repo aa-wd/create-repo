@@ -17,7 +17,12 @@ const log = (...args) => {
     console.log(...args);
 };
 
+const configExists = () => {
+    
+};
+
 module.exports = {
     getRequestOptions,
     log,
+    configExists
 };

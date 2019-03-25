@@ -1,1 +1,1 @@
-module.exports = jest.fn();
+module.exports = jest.fn(() => new Promise(resolve => resolve()));

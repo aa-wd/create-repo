@@ -1,8 +1,11 @@
+const { writeFile } = require('fs');
 const https = require('https');
 const querystring = require('querystring');
+const path = require('path');
 
 const { getRequestOptions } = require('./utils');
-const { refreshToken } = require('../bitbucketConfig.json');
+const config = require('../bitbucketConfig.json');
+const { refreshToken } = config;
 
 const getNewAccessToken = () => new Promise((resolve) => {
     const request = https.request(getRequestOptions(false), (res) => {
@@ -15,7 +18,6 @@ const getNewAccessToken = () => new Promise((resolve) => {
 
         res.on('end', () => {
             const parsedResponse = JSON.parse(responseData.join(''));
-            console.log(parsedResponse);
             resolve(parsedResponse.access_token);
         });
     });
@@ -29,7 +31,19 @@ const getNewAccessToken = () => new Promise((resolve) => {
     request.end();
 });
 
+const saveNewAccessToken = (accessToken) => new Promise((resolve, reject) => {
+    const configPath = path.resolve(__dirname, '../bitbucketConfig.json');
+    const data = JSON.stringify(Object.assign(config, {}, {
+        accessToken,
+    }), null, 4);
+
+    writeFile(configPath, data, 'utf8', (err) => {
+        if (err) reject();
+        resolve();
+    });
+});
+
 module.exports = {
     getNewAccessToken,
-    saveNewAccessToken: () => {},
+    saveNewAccessToken,
 };

@@ -1,6 +1,9 @@
-const { getRequestOptions } = require('../utils');
+const { writeFile } = require('fs');
 
+const { getRequestOptions, configExists } = require('../utils');
 const config = require('../../bitbucketConfig.json');
+
+jest.mock('fs');
 
 describe('utils.js', () => {
     test('returns request options with new or existing access tokens', () => {
@@ -36,5 +39,9 @@ describe('utils.js', () => {
         expect(options.headers['Content-Type']).toEqual('application/x-www-form-urlencoded');
         options = getRequestOptions(true);
         expect(options.headers['Content-Type']).toEqual('application/json');
+    });
+
+    test('detects if config exists and resolves boolean', () => {
+
     });
 });

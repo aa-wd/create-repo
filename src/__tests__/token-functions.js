@@ -1,7 +1,9 @@
+const path = require('path');
 const nock = require('nock');
+const { writeFile } = require('fs');
 const querystring = require('querystring');
 
-const { getNewAccessToken } = require('../token-functions');
+const { getNewAccessToken, saveNewAccessToken } = require('../token-functions');
 const config = require('../../bitbucketConfig.json');
 
 const apiUrl = 'https://bitbucket.org';
@@ -9,6 +11,8 @@ const postData = querystring.stringify({
     grant_type: 'refresh_token',
     refresh_token: config.refreshToken,
 });
+
+jest.mock('fs');
 
 const refreshTokenReponse = {
     "access_token": "xxxxxx",
@@ -24,5 +28,19 @@ describe('token-functions.js', () => {
             .post('/site/oauth2/access_token', postData)
             .reply(200, refreshTokenReponse)
         return expect(getNewAccessToken()).resolves.toBe(refreshTokenReponse.access_token);
+    });
+
+    test('saves the new access token to bitbucket config file', () => {
+        const exampleToken = 'hFInf9dkLQ';
+        const newConfig = JSON.stringify(Object.assign(config, {}, {
+            accessToken: exampleToken
+        }), null, 4);
+
+        return saveNewAccessToken(exampleToken)
+            .then(() => {
+                const configPath = path.resolve(__dirname, '../../bitbucketConfig.json');
+                expect(writeFile.mock.calls[0][0]).toEqual(configPath);
+                expect(writeFile.mock.calls[0][1]).toEqual(newConfig);
+            });
     });
 });
