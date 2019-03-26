@@ -2,7 +2,7 @@ const https = require('https');
 
 const { getRequestOptions, log } = require('./utils');
 const { getNewAccessToken, saveNewAccessToken } = require('./token-functions');
-let { accessToken } = require('../bitbucketConfig.json');
+let { accessToken } = require('_config');
 
 const getOptions = (projectName)  => getRequestOptions(true, projectName, accessToken);
 

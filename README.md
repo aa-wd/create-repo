@@ -1,26 +1,31 @@
 # create-repo
 
-CLI for creating Bitbucket repositories, written in `nodejs`. Leaves with exit code `1` on failure, `0` on success. 
+CLI for creating [Bitbucket](https://bitbucket.org) repositories, written in `nodejs`. Leaves with exit code `1` on failure, `0` on success. 
 
 ## Installation
+First, clone the repository and build the package:
 
-
-```bash
+```console
 git clone https://github.com/aa-wd/create-repo.git
 cd create-repo
-
-chmod u+x src/create-repo.js  # make executable
-ln -s $(pwd)/src/create-repo.js $HOME/bin/create-repo  # create symlink
-mv bitbucketConfig.example.json bitbucketConfig.json  # change config filename 
+npm install
+npm run build
 ```
 
-Afterwards, set the values of the configuration file to those matching to your account.
+Afterwards, make `./dist/create-repo.js` executable and findable in your `$PATH`. In the link, the `.js` extensions is dropped. 
+
+```console
+chmod u+x dist/create-repo.js
+ln -s $(pwd)/src/create-repo.js $HOME/bin/create-repo
+```
+
+Finally, use your own credentials in `bitbucketConfig.example.json` and rename it to `bitbucketConfig.json` (remove the `.example.`). You can leave the `accessToken` property empty, the rest needs to be filled in:
 
 ```json
 {
-    "username": "BITBUCKET_USERNAME",
+    "username": "YOUR_BITBUCKET_USERNAME",
     "accessToken": "",
-    "refreshToken": "BITBUCKET_REFRESH_TOKEN",
+    "refreshToken": "YOUR_REFRESH_TOKEN",
     "idAndSecret": "BASE64_ENCODED_CLIENT:SECRET"
 }
 ```
@@ -28,7 +33,7 @@ Afterwards, set the values of the configuration file to those matching to your a
 ## Usage
 From the command line:
 
-```bash
+```console
 create-repo YOUR_REPO_NAME
 ```
 

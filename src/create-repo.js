@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 const { argv } = require('process');
 
 const createRemoteRepo = require('./create-remote-repo');

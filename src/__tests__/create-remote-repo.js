@@ -2,7 +2,7 @@ const nock = require('nock');
 
 const createRemoteRepo = require('../create-remote-repo');
 const { getNewAccessToken, saveNewAccessToken } = require('../token-functions');
-const { username, accessToken } = require('../../bitbucketConfig.json');
+const { username, accessToken } = require('_config');
 
 const apiUrl = 'https://api.bitbucket.org';
 const matchAllUrls = (uri) => uri.includes('/2.0/repositories');

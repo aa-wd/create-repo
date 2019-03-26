@@ -1,7 +1,7 @@
 const { access } = require('fs');
 const path = require('path');
 
-const { accessToken, username, idAndSecret } = require('../bitbucketConfig.json');
+const { accessToken, username, idAndSecret } = require('_config');
 
 const getRequestOptions = (forCreateRepo, projectName = null, newToken = null) => ({
     host: forCreateRepo ? 'api.bitbucket.org' : 'bitbucket.org',
