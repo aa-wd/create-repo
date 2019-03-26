@@ -4,7 +4,7 @@ const { writeFile } = require('fs');
 const querystring = require('querystring');
 
 const { getNewAccessToken, saveNewAccessToken } = require('../token-functions');
-const config = require('../../bitbucketConfig.json');
+const config = require('_config');
 
 const apiUrl = 'https://bitbucket.org';
 const postData = querystring.stringify({

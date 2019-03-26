@@ -2,7 +2,7 @@ const { writeFile, access } = require('fs');
 const path = require('path');
 
 const { getRequestOptions, configExists } = require('../utils');
-const config = require('../../bitbucketConfig.json');
+const config = require('_config');
 
 jest.mock('fs');
 
