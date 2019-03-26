@@ -4,7 +4,8 @@ const querystring = require('querystring');
 const path = require('path');
 
 const { getRequestOptions } = require('./utils');
-const config = require('../bitbucketConfig.json');
+const config = require('_config');
+
 const { refreshToken } = config;
 
 const getNewAccessToken = () => new Promise((resolve) => {

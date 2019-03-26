@@ -1,22 +1,27 @@
 # create-repo
 
-CLI for creating Bitbucket repositories, written in `nodejs`. Leaves with exit code `1` on failure, `0` on success. 
+CLI for creating [Bitbucket](https://bitbucket.org) repositories, written in `nodejs`. Leaves with exit code `1` on failure, `0` on success. 
 
 ## Installation
+First, clone the repository and build the package:
 
-
-```bash
+```console
 git clone https://github.com/aa-wd/create-repo.git
 cd create-repo
-chmod u+x src/create-repo.js
+npm install
+npm run build
 
-# create a symlink
+```
+Afterwards, make `./dist/create-repo.js` executable and findable in your `$PATH`. In the link, the `.js` extensions is dropped. 
+
+```console
+chmod u+x dist/create-repo.js
 ln -s $(pwd)/src/create-repo.js $HOME/bin/create-repo
 ```
 
 ## Usage
 
-```bash
+```console
 create-repo YOUR_REPO_NAME
 ```
 
