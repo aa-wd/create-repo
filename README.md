@@ -16,7 +16,7 @@ Afterwards, make `./dist/create-repo.js` executable and findable in your `$PATH`
 
 ```console
 chmod u+x dist/create-repo.js
-ln -s $(pwd)/src/create-repo.js $HOME/bin/create-repo
+ln -s $(pwd)/dist/create-repo.js $HOME/bin/create-repo
 ```
 
 Finally, use your own credentials in `bitbucketConfig.example.json` and rename it to `bitbucketConfig.json` (remove the `.example.`). You can leave the `accessToken` property empty, the rest needs to be filled in:
